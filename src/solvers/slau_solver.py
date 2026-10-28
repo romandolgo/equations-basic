@@ -1,79 +1,93 @@
 import sys
 from pathlib import Path
-from typing import TextIO
 
 import numpy as np
-from numpy.typing import NDArray
 
+# make `from decomps.lup import lup_factor` work when run as a script
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from decomps.ldlt import ldlt_factor
 from decomps.lup import lup_factor
+from decomps.ldlt import ldlt_factor 
 from decomps.qr import qr_factor
-from solvers.ldlt_solve import ldlt_solve
 from solvers.lup_solve import lup_solve
+from solvers.ldlt_solve import ldlt_solve
 from solvers.qr_solve import qr_solve
 
+METHODS = ("lup", "ldlt", "qr")
+PROMPT_A = "Введите матрицу A:"
+PROMPT_B = "Введите вектор b:"
 
-def _read_system(
-    stream: TextIO, console: bool = False
-) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-    if console:
-        print("Введите матрицу A:", flush=True)
 
-    rows: list[list[str]] = []
-    for line in stream:
+def parse_args(args):
+    """Возвращает (path, method); path = None означает ввод с консоли."""
+    path, method = None, "lup"
+    if len(args) == 1:
+        if args[0] in METHODS:
+            method = args[0]
+        else:
+            path = args[0]
+    elif len(args) >= 2:
+        path, method = args[0], args[1]
+    return path, method
+
+
+def parse_row(line):
+    return [float(token) for token in line.split()]
+
+
+def read_from_file(path):
+    lines = Path(path).read_text(encoding="utf-8").splitlines()
+
+    rows = []
+    i = 0
+    while i < len(lines) and lines[i].strip():
+        rows.append(parse_row(lines[i]))
+        i += 1
+
+    b = [float(line) for line in lines[i:] if line.strip()]
+    return np.array(rows, dtype=np.float64), np.array(b, dtype=np.float64)
+
+
+def read_from_console():
+    print(PROMPT_A)
+    rows = []
+    while True:
+        line = input()
         if not line.strip():
             break
-        rows.append(line.split())
+        rows.append(parse_row(line))
 
-    A: NDArray[np.float64] = np.array(rows, dtype=np.float64)
-    if console:
-        print("Введите вектор b:", flush=True)
-        b: NDArray[np.float64] = np.array(
-            [stream.readline() for _ in range(A.shape[0])], dtype=np.float64
-        )
-    else:
-        b: NDArray[np.float64] = np.array(stream.read().split(), dtype=np.float64)
-
-    return A, b
+    n = len(rows)
+    print(PROMPT_B)
+    b = [float(input()) for _ in range(n)]
+    return np.array(rows, dtype=np.float64), np.array(b, dtype=np.float64)
 
 
-def main(args: list[str]) -> None:
+def solve(A, b, method):
+    if method == "lup":
+        L, U, p = lup_factor(A)
+        return lup_solve(L, U, p, b)
+    if method == "ldlt":
+        L, d = ldlt_factor(A)
+        return ldlt_solve(L, d, b)
+    F, tau = qr_factor(A)
+    return qr_solve(F, tau, b)
+
+
+# =================================== main ===================================
+def main(args):
     """
     :param args: list[str], command-line arguments without the program name
     """
-    methods: tuple[str, ...] = ("lup", "ldlt", "qr")
-    method: str = "lup"
-    path: Path | None = None
-
-    if len(args) == 2:
-        path = Path(args[0])
-        method = args[1]
-    elif args:
-        if args[0] in methods:
-            method = args[0]
-        else:
-            path = Path(args[0])
-
+    path, method = parse_args(args)
     if path is None:
-        A, b = _read_system(sys.stdin, console=True)
+        A, b = read_from_console()
     else:
-        with path.open(encoding="utf-8") as stream:
-            A, b = _read_system(stream)
+        A, b = read_from_file(path)
 
-    if method == "lup":
-        L, U, p = lup_factor(A)
-        x: NDArray = lup_solve(L, U, p, b)
-    elif method == "ldlt":
-        L, d = ldlt_factor(A)
-        x: NDArray = ldlt_solve(L, d, b)
-    else:
-        F, tau = qr_factor(A)
-        x: NDArray = qr_solve(F, tau, b)
-
+    x = solve(A, b, method)
     for value in x:
-        print(f"{value:.17g}")
+        print(format(value, ".17g"))
 
 
 if __name__ == "__main__":

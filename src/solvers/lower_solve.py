@@ -1,8 +1,8 @@
+# =============================== lower_solve ================================
 import numpy as np
-from numpy.typing import NDArray
 
 
-def lower_solve(L: NDArray, b: NDArray) -> NDArray:
+def lower_solve(L, b):
     """
     :param L: np.array((n, n)), float32 or float64, nonsingular lower
               triangular, diagonal not necessarily unit
@@ -10,21 +10,12 @@ def lower_solve(L: NDArray, b: NDArray) -> NDArray:
 
     :return: np.array((n,)), same dtype as L -- x
     """
-    if not all(np.all(np.isfinite(array)) for array in (L, b)):
-        raise ArithmeticError("Матрица L или вектор b содержат неконечные значения")
 
-    n: int = L.shape[0]
-    x: NDArray = np.zeros(n, dtype=L.dtype)
-
+    n = L.shape[0]
+    x = np.zeros(L.shape[0], dtype=L.dtype)
     for i in range(n):
-        row_sum: np.floating = L.dtype.type(L[i, :i] @ x[:i])
-        if L[i, i] == 0:
-            raise ZeroDivisionError(
-                f"Нулевой диагональный элемент на шаге {i=}: {L[i, i]=}"
-            )
-        x[i] = (b[i] - row_sum) / L[i, i]
-
-    if not np.all(np.isfinite(x)):
-        raise ArithmeticError("При прямой подстановке получены неконечные значения")
-
+        sum_lower = L[i, :i] @ x[:i]
+        if (L[i, i] == 0):
+            raise ZeroDivisionError(f"zero diagonal element at step {i}")
+        x[i] = (b[i] - sum_lower) / L[i, i]
     return x

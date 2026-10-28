@@ -379,7 +379,6 @@ def _check_ldlt(A, result, L_expected=None, d_expected=None, atol=REF):
         residual <= bound
     ), f"||A - L diag(d) L^T||_F = {residual:.3e} > {bound:.3e}"
     if L_expected is not None:
-        assert d_expected is not None
         assert_allclose(
             L, L_expected, rtol=0, atol=atol, err_msg="L differs from expected"
         )
@@ -666,7 +665,6 @@ def test_apply_q_matches_library_q(n, m):
     A, b = _random((n, m), n), _random(n, m)
     F, tau = qr_factor(A)
     Q = scipy.linalg.qr(A)[0]
-    assert isinstance(Q, np.ndarray)
     y = _check_array(apply_q(F, tau, b), (n,), "apply_q")
     assert_allclose(
         y,
@@ -1160,7 +1158,6 @@ def test_cli_console_does_not_wait_for_end_of_input(tmp_path):
         env=_solver_env(),
     )
     try:
-        assert process.stdin is not None
         process.stdin.write(EXAMPLE)
         process.stdin.flush()
         process.wait(timeout=30)
