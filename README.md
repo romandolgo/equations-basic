@@ -1,6 +1,6 @@
 # Лабораторная работа №2. Разложения и решение СЛАУ
 
-Все выполненные задания должны лежать в `src/`.
+Реализации алгоритмов находятся в `src/`, эксперименты и отчёты по заданиям — в `notebooks/`.
 
 | Часть | Файл |
 |:-|:-|
@@ -12,12 +12,14 @@
 | Программа-решатель | [`src/solvers/slau_solver.py`](src/solvers/slau_solver.py) |
 | Решатель МНК | [`src/mnk/lstsq.py`](src/mnk/lstsq.py) |
 | Регуляризация Тихонова | [`src/mnk/tikhonov.py`](src/mnk/tikhonov.py) |
-| Задание I. Обусловленность и устойчивость | [`src/conditioning.py`](src/conditioning.py) |
-| Задание II. МНК и потеря точности | [`src/lstsq_accuracy.py`](src/lstsq_accuracy.py) |
-| Задание III. Регуляризация и ошибки данных | [`src/regularization.py`](src/regularization.py) |
-| Задание IV. Задача извне | [`src/reservoirs.py`](src/reservoirs.py) |
+| Задание I. Обусловленность и устойчивость | [`notebooks/conditioning.ipynb`](notebooks/conditioning.ipynb) |
+| Задание II. МНК и потеря точности | [`notebooks/lstsq_accuracy.ipynb`](notebooks/lstsq_accuracy.ipynb) |
+| Задание III. Регуляризация и ошибки данных | [`notebooks/regularization.ipynb`](notebooks/regularization.ipynb) |
+| Задание IV. Задача извне | [`notebooks/reservoirs.ipynb`](notebooks/reservoirs.ipynb) |
 
 Модули импортируются от `src`: `from decomps.lup import lup_factor`.
+
+Ноутбуки можно запускать из корня репозитория или из `notebooks/`: путь к `src/` добавляется в первой ячейке с кодом.
 
 Публичные тесты: [`tests/test_public.py`](tests/test_public.py).
 
